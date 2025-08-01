@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PCA Interactive Lab - Learn by Doing!</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Progress Bar -->
+        <div class="progress-container">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-text" id="progressText">Section 1 of 6</div>
+        </div>
+
+        <!-- Section 1: Introduction -->
+        <section class="lab-section active" id="section1">
+            <div class="section-content">
+                <h1>🔍 What is PCA? Let's Find Out!</h1>
+                <div class="intro-container">
+                    <div class="intro-text">
+                        <h2>Imagine you're looking at a crowd of people from above...</h2>
+                        <p>Sometimes the best way to understand something is to look at it from the right angle! PCA (Principal Component Analysis) is like finding the <strong>perfect viewpoint</strong> to see patterns in data.</p>
+                        <p>Think of it as finding the best way to take a photo of your friends so everyone looks good! 📸</p>
+                    </div>
+                    <div class="demo-container">
+                        <canvas id="introCanvas" width="400" height="300"></canvas>
+                        <div class="demo-controls">
+                            <button class="btn btn--primary" id="cycleAngleBtn">Try Different Angles! 🔄</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="nav-buttons">
+                    <button class="btn btn--primary btn--lg" id="nextBtn1">Let's Start Creating Data! →</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Interactive Data Generation -->
+        <section class="lab-section" id="section2">
+            <div class="section-content">
+                <h1>🎨 Create Your Own Data!</h1>
+                <p>Click anywhere on the canvas below to add data points. Think of each point as a measurement - like someone's height and weight, or study time and test scores!</p>
+                
+                <div class="canvas-container">
+                    <canvas id="dataCanvas" width="500" height="400"></canvas>
+                    <div class="canvas-info">
+                        <p>Points created: <span id="pointCount">0</span></p>
+                    </div>
+                </div>
+
+                <div class="preset-controls">
+                    <h3>Or try these patterns:</h3>
+                    <div class="preset-buttons">
+                        <button class="btn btn--secondary" data-pattern="random">Random Scatter 🎲</button>
+                        <button class="btn btn--secondary" data-pattern="diagonal">Diagonal Line 📈</button>
+                        <button class="btn btn--secondary" data-pattern="clusters">Two Clusters 👥</button>
+                        <button class="btn btn--outline" id="clearData">Clear All 🗑️</button>
+                    </div>
+                </div>
+
+                <div class="nav-buttons">
+                    <button class="btn btn--outline" id="prevBtn2">← Back</button>
+                    <button class="btn btn--primary btn--lg" id="nextBtn2">Find the Best Line! →</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Finding the Best Line -->
+        <section class="lab-section" id="section3">
+            <div class="section-content">
+                <h1>📏 Can You Find the Best Line?</h1>
+                <p>Drag the line around to find the direction where your data spreads out the most. This is what PCA does automatically!</p>
+                
+                <div class="canvas-container">
+                    <canvas id="lineCanvas" width="500" height="400"></canvas>
+                    <div class="line-info">
+                        <p>Try dragging the line to capture the data's main direction!</p>
+                        <div class="score-display">
+                            <span>Your fit score: </span>
+                            <span id="fitScore">0%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="line-controls">
+                    <button class="btn btn--primary" id="showPCABtn">Show PCA Solution! ✨</button>
+                    <button class="btn btn--secondary" id="resetLineBtn">Try Again 🔄</button>
+                </div>
+
+                <div class="explanation" id="pcaExplanation" style="display: none;">
+                    <div class="card">
+                        <div class="card__body">
+                            <h3>🎯 The PCA Magic!</h3>
+                            <p>The red line shows the <strong>first principal component</strong> - the direction where your data varies the most. This is like finding the best angle to view your data!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="nav-buttons">
+                    <button class="btn btn--outline" id="prevBtn3">← Back</button>
+                    <button class="btn btn--primary btn--lg" id="nextBtn3">See Dimension Reduction! →</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: Dimension Reduction Demo -->
+        <section class="lab-section" id="section4">
+            <div class="section-content">
+                <h1>📊 From 2D to 1D - The Magic of Simplification!</h1>
+                <p>Watch how PCA can take your 2D data and project it onto a 1D line, keeping the most important information!</p>
+                
+                <div class="canvas-container">
+                    <canvas id="projectionCanvas" width="500" height="400"></canvas>
+                </div>
+
+                <div class="projection-controls">
+                    <div class="slider-container">
+                        <label for="dimensionSlider">Dimension View:</label>
+                        <input type="range" id="dimensionSlider" min="0" max="100" value="0">
+                        <div class="slider-labels">
+                            <span>2D (Original)</span>
+                            <span>1D (Projected)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="projection-info">
+                    <div class="info-cards">
+                        <div class="card info-card">
+                            <div class="card__body">
+                                <h4>📏 What's Kept</h4>
+                                <p>The main pattern and relationships in your data</p>
+                            </div>
+                        </div>
+                        <div class="card info-card">
+                            <div class="card__body">
+                                <h4>📉 What's Lost</h4>
+                                <p>Some fine details, but the big picture remains!</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="nav-buttons">
+                    <button class="btn btn--outline" id="prevBtn4">← Back</button>
+                    <button class="btn btn--primary btn--lg" id="nextBtn4">See Real Examples! →</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 5: Real-World Applications -->
+        <section class="lab-section" id="section5">
+            <div class="section-content">
+                <h1>🌍 PCA in the Real World!</h1>
+                <p>PCA is used everywhere! Here are some cool examples:</p>
+                
+                <div class="applications-grid">
+                    <div class="app-card card">
+                        <div class="card__body">
+                            <h3>📱 Face Recognition</h3>
+                            <p>PCA helps phones recognize your face by finding the most important features!</p>
+                            <div class="app-demo" id="faceDemo">
+                                <div class="face-grid">
+                                    <div class="face-feature">👀</div>
+                                    <div class="face-feature">👃</div>
+                                    <div class="face-feature">👄</div>
+                                </div>
+                                <div class="arrow">→</div>
+                                <div class="pca-result">Key Features</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="app-card card">
+                        <div class="card__body">
+                            <h3>🗜️ Data Compression</h3>
+                            <p>PCA makes files smaller by keeping only the important information!</p>
+                            <div class="app-demo" id="compressionDemo">
+                                <div class="data-size large">📁 1MB</div>
+                                <div class="arrow">→</div>
+                                <div class="data-size small">📁 100KB</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="app-card card">
+                        <div class="card__body">
+                            <h3>📊 Survey Analysis</h3>
+                            <p>Find patterns in what people think by analyzing survey responses!</p>
+                            <div class="app-demo" id="surveyDemo">
+                                <div class="survey-responses">
+                                    <div class="response">😊 Happy</div>
+                                    <div class="response">😐 Neutral</div>
+                                    <div class="response">😞 Sad</div>
+                                </div>
+                                <div class="arrow">→</div>
+                                <div class="pattern">Main Mood</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="app-card card">
+                        <div class="card__body">
+                            <h3>🎯 Grade Analysis</h3>
+                            <p>Teachers use PCA to understand what subjects are connected!</p>
+                            <div class="app-demo" id="gradeDemo">
+                                <div class="subjects">
+                                    <div class="subject">📐 Math</div>
+                                    <div class="subject">🔬 Science</div>
+                                    <div class="subject">📚 English</div>
+                                </div>
+                                <div class="arrow">→</div>
+                                <div class="connection">STEM vs Language</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="nav-buttons">
+                    <button class="btn btn--outline" id="prevBtn5">← Back</button>
+                    <button class="btn btn--primary btn--lg" id="nextBtn5">Try Real Datasets! →</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 6: 3D Visualization -->
+        <section class="lab-section" id="section6">
+            <div class="section-content">
+                <h1>🌌 Visualizing PCA in 3D!</h1>
+                <p>Here you can see your 2D data in a 3D space and how the PCA plane cuts through it.</p>
+                
+                <div id="container_3d"></div>
+
+                <div class="completion-section">
+                    <div class="card success-card" style="display: none;" id="completionCard">
+                        <div class="card__body">
+                            <h2>🎉 Congratulations!</h2>
+                            <p>You've completed the PCA Interactive Lab! You now understand:</p>
+                            <ul>
+                                <li>✅ What PCA does (finds the best viewing angle for data)</li>
+                                <li>✅ How to create and explore data patterns</li>
+                                <li>✅ How PCA finds the main direction of variation</li>
+                                <li>✅ How dimension reduction works</li>
+                                <li>✅ Real-world applications of PCA</li>
+                            </ul>
+                            <p><strong>Great job exploring the world of data analysis! 🚀</strong></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="nav-buttons">
+                    <button class="btn btn--outline" id="prevBtn6">← Back</button>
+                    <button class="btn btn--primary btn--lg" id="completeBtn">Complete Lab! 🎉</button>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

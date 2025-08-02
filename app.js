@@ -12,8 +12,9 @@ class PCALab {
         this.angleIndex = 0;
         this.isDrawing = false;
         this.lastPointTime = 0;
-        
-        // Sample datasets from the provided data
+        this.threeJsInitialized = false;
+        this.isAnimating3D = false;
+
         this.datasets = [
             {
                 name: "Student Heights and Weights",
@@ -41,7 +42,6 @@ class PCALab {
             }
         ];
 
-        // Preset patterns
         this.presetPatterns = {
             random: [
                 {x: 100, y: 150}, {x: 200, y: 200}, {x: 150, y: 100}, {x: 250, y: 180}, {x: 180, y: 220},
@@ -67,11 +67,9 @@ class PCALab {
         this.setupDataCanvas();
         this.setupLineCanvas();
         this.setupProjectionCanvas();
-        this.setup3DVisualization();
     }
 
     setupEventListeners() {
-        // Navigation buttons
         document.getElementById('nextBtn1').addEventListener('click', () => this.nextSection());
         document.getElementById('nextBtn2').addEventListener('click', () => this.nextSection());
         document.getElementById('nextBtn3').addEventListener('click', () => this.nextSection());
@@ -84,23 +82,18 @@ class PCALab {
         document.getElementById('prevBtn5').addEventListener('click', () => this.prevSection());
         document.getElementById('prevBtn6').addEventListener('click', () => this.prevSection());
 
-        // Section 1: Intro controls
         document.getElementById('cycleAngleBtn').addEventListener('click', () => this.cycleViewingAngle());
 
-        // Section 2: Data creation controls
         document.querySelectorAll('[data-pattern]').forEach(btn => {
             btn.addEventListener('click', (e) => this.loadPresetPattern(e.target.dataset.pattern));
         });
         document.getElementById('clearData').addEventListener('click', () => this.clearData());
 
-        // Section 3: Line controls
         document.getElementById('showPCABtn').addEventListener('click', () => this.showPCALine());
         document.getElementById('resetLineBtn').addEventListener('click', () => this.resetUserLine());
 
-        // Section 4: Projection controls
         document.getElementById('dimensionSlider').addEventListener('input', (e) => this.updateProjection(e.target.value));
 
-        // Section 6: Final section controls
         document.getElementById('completeBtn').addEventListener('click', () => this.completeLab());
     }
 
@@ -111,7 +104,6 @@ class PCALab {
             document.getElementById(`section${this.currentSection}`).classList.add('active');
             this.updateProgress();
             
-            // Handle section-specific initialization
             if (this.currentSection === 3) {
                 this.initializeLineSection();
             } else if (this.currentSection === 4) {
@@ -140,7 +132,6 @@ class PCALab {
         progressText.textContent = `Section ${this.currentSection} of ${this.totalSections}`;
     }
 
-    // Section 1: Introduction Canvas
     setupIntroCanvas() {
         this.introCanvas = document.getElementById('introCanvas');
         this.introCtx = this.introCanvas.getContext('2d');
@@ -153,34 +144,30 @@ class PCALab {
         
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
-        // Sample data points
         const points = [
             {x: 100, y: 100}, {x: 150, y: 120}, {x: 200, y: 140}, {x: 250, y: 160},
             {x: 120, y: 80}, {x: 180, y: 100}, {x: 220, y: 120}, {x: 280, y: 140}
         ];
         
-        // Draw points
-        ctx.fillStyle = '#1FB8CD';
+        ctx.fillStyle = '#4A90E2';
         points.forEach(point => {
             ctx.beginPath();
             ctx.arc(point.x, point.y, 6, 0, 2 * Math.PI);
             ctx.fill();
         });
         
-        // Draw viewing angle line
         const angles = [0, Math.PI/6, Math.PI/4, Math.PI/3];
         const angle = angles[this.angleIndex % angles.length];
         
-        ctx.strokeStyle = '#B4413C';
+        ctx.strokeStyle = '#7ED321';
         ctx.lineWidth = 3;
         ctx.beginPath();
         ctx.moveTo(50, 150);
         ctx.lineTo(50 + 300 * Math.cos(angle), 150 - 300 * Math.sin(angle));
         ctx.stroke();
         
-        // Add angle label
-        ctx.fillStyle = '#B4413C';
-        ctx.font = '16px Arial';
+        ctx.fillStyle = '#7ED321';
+        ctx.font = "16px 'Comic Sans MS', 'Chalkboard SE', 'Marker Felt', sans-serif";
         ctx.fillText(`Viewing Angle ${this.angleIndex + 1}`, 10, 280);
     }
 
@@ -189,7 +176,6 @@ class PCALab {
         this.drawIntroDemo();
     }
 
-    // Section 2: Data Creation Canvas
     setupDataCanvas() {
         this.dataCanvas = document.getElementById('dataCanvas');
         this.dataCtx = this.dataCanvas.getContext('2d');
@@ -216,7 +202,7 @@ class PCALab {
     addDataPoint(event) {
         const currentTime = Date.now();
         if (currentTime - this.lastPointTime < 100) {
-            return; // Debounce
+            return;
         }
         this.lastPointTime = currentTime;
 
@@ -251,7 +237,6 @@ class PCALab {
         
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
-        // Draw grid
         ctx.strokeStyle = '#f0f0f0';
         ctx.lineWidth = 1;
         for (let i = 0; i <= canvas.width; i += 50) {
@@ -267,8 +252,7 @@ class PCALab {
             ctx.stroke();
         }
         
-        // Draw points
-        ctx.fillStyle = '#1FB8CD';
+        ctx.fillStyle = '#4A90E2';
         this.userPoints.forEach(point => {
             ctx.beginPath();
             ctx.arc(point.x, point.y, 8, 0, 2 * Math.PI);
@@ -276,7 +260,6 @@ class PCALab {
         });
     }
 
-    // Section 3: Line Fitting Canvas
     setupLineCanvas() {
         this.lineCanvas = document.getElementById('lineCanvas');
         this.lineCtx = this.lineCanvas.getContext('2d');
@@ -295,7 +278,6 @@ class PCALab {
         this.drawLineCanvas();
         this.updateFitScore();
         
-        // Hide explanation initially
         document.getElementById('pcaExplanation').style.display = 'none';
     }
 
@@ -304,7 +286,6 @@ class PCALab {
         const x = event.clientX - rect.left;
         const y = event.clientY - rect.top;
         
-        // Check if click is near the line
         const distance = this.distanceToLine(x, y, this.userLine);
         if (distance < 20) {
             this.draggingLine = true;
@@ -319,7 +300,6 @@ class PCALab {
         const x = event.clientX - rect.left;
         const y = event.clientY - rect.top;
         
-        // Calculate angle from center to mouse position
         const centerX = this.lineCanvas.width / 2;
         const centerY = this.lineCanvas.height / 2;
         this.userLine.angle = Math.atan2(centerY - y, x - centerX);
@@ -352,11 +332,9 @@ class PCALab {
     calculatePCA() {
         if (this.userPoints.length < 2) return;
         
-        // Calculate mean
         const meanX = this.userPoints.reduce((sum, p) => sum + p.x, 0) / this.userPoints.length;
         const meanY = this.userPoints.reduce((sum, p) => sum + p.y, 0) / this.userPoints.length;
         
-        // Calculate covariance matrix
         let covXX = 0, covXY = 0, covYY = 0;
         this.userPoints.forEach(point => {
             const dx = point.x - meanX;
@@ -369,7 +347,6 @@ class PCALab {
         covXY /= this.userPoints.length - 1;
         covYY /= this.userPoints.length - 1;
         
-        // Calculate eigenvalue and eigenvector
         const trace = covXX + covYY;
         const det = covXX * covYY - covXY * covXY;
         const eigenvalue1 = (trace + Math.sqrt(trace * trace - 4 * det)) / 2;
@@ -386,7 +363,8 @@ class PCALab {
 
     updateFitScore() {
         if (this.pcaLine && this.userPoints.length > 0) {
-            const angleDiff = Math.abs(this.userLine.angle - this.pcaLine.angle);
+            let angleDiff = Math.abs(this.userLine.angle - this.pcaLine.angle);
+            angleDiff = angleDiff > Math.PI ? 2 * Math.PI - angleDiff : angleDiff;
             const normalizedDiff = Math.min(angleDiff, Math.PI - angleDiff);
             const score = Math.max(0, 100 - (normalizedDiff / (Math.PI / 2)) * 100);
             document.getElementById('fitScore').textContent = `${Math.round(score)}%`;
@@ -413,20 +391,18 @@ class PCALab {
         
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
-        // Draw points
-        ctx.fillStyle = '#1FB8CD';
+        ctx.fillStyle = '#4A90E2';
         this.userPoints.forEach(point => {
             ctx.beginPath();
             ctx.arc(point.x, point.y, 8, 0, 2 * Math.PI);
             ctx.fill();
         });
         
-        // Draw user line
         if (this.userPoints.length > 0) {
             const centerX = canvas.width / 2;
             const centerY = canvas.height / 2;
             
-            ctx.strokeStyle = '#5D878F';
+            ctx.strokeStyle = '#F5A623';
             ctx.lineWidth = 3;
             ctx.beginPath();
             ctx.moveTo(centerX - 200 * Math.cos(this.userLine.angle), centerY + 200 * Math.sin(this.userLine.angle));
@@ -434,24 +410,21 @@ class PCALab {
             ctx.stroke();
         }
         
-        // Draw PCA line if shown
         if (this.pcaShown && this.pcaLine) {
-            ctx.strokeStyle = '#B4413C';
+            ctx.strokeStyle = '#7ED321';
             ctx.lineWidth = 4;
             ctx.beginPath();
             ctx.moveTo(this.pcaLine.x - 200 * Math.cos(this.pcaLine.angle), this.pcaLine.y + 200 * Math.sin(this.pcaLine.angle));
             ctx.lineTo(this.pcaLine.x + 200 * Math.cos(this.pcaLine.angle), this.pcaLine.y - 200 * Math.sin(this.pcaLine.angle));
             ctx.stroke();
             
-            // Draw center point
-            ctx.fillStyle = '#B4413C';
+            ctx.fillStyle = '#7ED321';
             ctx.beginPath();
             ctx.arc(this.pcaLine.x, this.pcaLine.y, 6, 0, 2 * Math.PI);
             ctx.fill();
         }
     }
 
-    // Section 4: Projection Canvas
     setupProjectionCanvas() {
         this.projectionCanvas = document.getElementById('projectionCanvas');
         this.projectionCtx = this.projectionCanvas.getContext('2d');
@@ -479,29 +452,25 @@ class PCALab {
         
         const t = this.projectionValue / 100;
         
-        // Draw original points
-        ctx.fillStyle = `rgba(31, 184, 205, ${1 - t * 0.5})`;
+        ctx.fillStyle = `rgba(74, 144, 226, ${1 - t * 0.5})`;
         this.userPoints.forEach(point => {
             ctx.beginPath();
             ctx.arc(point.x, point.y, 8, 0, 2 * Math.PI);
             ctx.fill();
         });
         
-        // Draw PCA line
-        ctx.strokeStyle = `rgba(180, 65, 60, ${1 - t * 0.3})`;
+        ctx.strokeStyle = `rgba(126, 211, 33, ${1 - t * 0.3})`;
         ctx.lineWidth = 3;
         ctx.beginPath();
         ctx.moveTo(this.pcaLine.x - 200 * Math.cos(this.pcaLine.angle), this.pcaLine.y + 200 * Math.sin(this.pcaLine.angle));
         ctx.lineTo(this.pcaLine.x + 200 * Math.cos(this.pcaLine.angle), this.pcaLine.y - 200 * Math.sin(this.pcaLine.angle));
         ctx.stroke();
         
-        // Draw projected points
         if (t > 0) {
-            ctx.fillStyle = `rgba(212, 186, 76, ${t})`;
+            ctx.fillStyle = `rgba(245, 166, 35, ${t})`;
             this.userPoints.forEach(point => {
                 const projectedPoint = this.projectPointOntoLine(point, this.pcaLine);
                 
-                // Interpolate between original and projected position
                 const currentX = point.x + t * (projectedPoint.x - point.x);
                 const currentY = point.y + t * (projectedPoint.y - point.y);
                 
@@ -509,9 +478,8 @@ class PCALab {
                 ctx.arc(currentX, currentY, 8, 0, 2 * Math.PI);
                 ctx.fill();
                 
-                // Draw projection lines
                 if (t > 0.5) {
-                    ctx.strokeStyle = `rgba(150, 67, 37, ${(t - 0.5) * 2})`;
+                    ctx.strokeStyle = `rgba(231, 76, 60, ${(t - 0.5) * 2})`;
                     ctx.lineWidth = 1;
                     ctx.setLineDash([5, 5]);
                     ctx.beginPath();
@@ -535,55 +503,225 @@ class PCALab {
         };
     }
 
-    // Section 6: 3D Visualization
-    setup3DVisualization() {
-        this.container3d = document.getElementById('container_3d');
-        this.renderer = new THREE.WebGLRenderer();
-        this.renderer.setSize(500, 400);
-        this.container3d.appendChild(this.renderer.domElement);
-    }
-
     init3DVisualization() {
-        // Basic Three.js setup
-        this.scene = new THREE.Scene();
-        this.camera = new THREE.PerspectiveCamera(75, 500 / 400, 0.1, 1000);
+        if (!this.threeJsInitialized) {
+            this.container3d = document.getElementById('container_3d');
+            this.renderer = new THREE.WebGLRenderer({ antialias: true });
+            this.renderer.setPixelRatio(window.devicePixelRatio);
+            this.container3d.appendChild(this.renderer.domElement);
 
-        // Add points to the 3D scene
-        const geometry = new THREE.BufferGeometry();
-        const positions = new Float32Array(this.userPoints.length * 3);
-        this.userPoints.forEach((p, i) => {
-            positions[i * 3] = p.x - 250; // Center the points
-            positions[i * 3 + 1] = p.y - 200;
-            positions[i * 3 + 2] = 0;
-        });
-        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-        const material = new THREE.PointsMaterial({ color: 0x1FB8CD, size: 10 });
-        const points = new THREE.Points(geometry, material);
-        this.scene.add(points);
+            this.scene = new THREE.Scene();
+            this.camera = new THREE.PerspectiveCamera(60, 1, 0.1, 1000);
+            this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
+            this.controls.enableDamping = true;
 
-        // Add PCA plane
-        if (this.pcaLine) {
-            const planeGeometry = new THREE.PlaneGeometry(500, 500);
-            const planeMaterial = new THREE.MeshBasicMaterial({ color: 0xB4413C, side: THREE.DoubleSide, transparent: true, opacity: 0.5 });
-            const plane = new THREE.Mesh(planeGeometry, planeMaterial);
-            plane.rotation.z = -this.pcaLine.angle;
-            this.scene.add(plane);
+            document.getElementById('vis_step_1').addEventListener('click', () => this.visualizeStep(1));
+            document.getElementById('vis_step_2').addEventListener('click', () => this.visualizeStep(2));
+            document.getElementById('vis_step_3').addEventListener('click', () => this.visualizeStep(3));
+            document.getElementById('vis_step_4').addEventListener('click', () => this.visualizeStep(4));
+            document.getElementById('vis_reset').addEventListener('click', () => this.init3DVisualization());
+            
+            window.addEventListener('resize', () => this.onWindowResize(), false);
+            this.threeJsInitialized = true;
         }
 
-        this.camera.position.z = 300;
+        this.generate3DData();
+        this.onWindowResize();
 
-        const animate = () => {
-            requestAnimationFrame(animate);
-            points.rotation.x += 0.01;
-            points.rotation.y += 0.01;
-            if (this.pcaLine) {
-                plane.rotation.x += 0.01;
-                plane.rotation.y += 0.01;
+        this.scene.clear();
+        this.scene.background = new THREE.Color('#F0F8FF');
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+        this.scene.add(ambientLight);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.9);
+        directionalLight.position.set(10, 15, 10);
+        this.scene.add(directionalLight);
+
+        const gridHelper = new THREE.GridHelper(500, 20, 0xD8D8D8, 0xD8D8D8);
+        this.scene.add(gridHelper);
+
+        document.getElementById('vis_step_1').disabled = false;
+        document.getElementById('vis_step_2').disabled = true;
+        document.getElementById('vis_step_3').disabled = true;
+        document.getElementById('vis_step_4').disabled = true;
+        document.getElementById('pca_3d_explanation_card').style.display = 'none';
+
+        this.points3D = new THREE.Group();
+        const geometry = new THREE.SphereGeometry(4, 32, 32);
+        const material = new THREE.MeshStandardMaterial({ color: '#4A90E2', metalness: 0.3, roughness: 0.4 });
+        this.points3DData.forEach(p => {
+            const sphere = new THREE.Mesh(geometry, material);
+            sphere.position.copy(p);
+            this.points3D.add(sphere);
+        });
+        this.scene.add(this.points3D);
+
+        this.camera.position.set(100, 100, 150);
+        this.controls.target.set(0, 0, 0);
+        this.controls.update();
+
+        if (!this.isAnimating3D) {
+            this.isAnimating3D = true;
+            this.animate3D();
+        }
+    }
+
+    generate3DData() {
+        this.points3DData = [];
+        const numPoints = 50;
+        for (let i = 0; i < numPoints; i++) {
+            const x = Math.random() * 100 - 50;
+            const y = x * 0.5 + (Math.random() - 0.5) * 30;
+            const z = x * 0.2 + (Math.random() - 0.5) * 40;
+            this.points3DData.push(new THREE.Vector3(x, y, z));
+        }
+    }
+
+    onWindowResize() {
+        if (!this.container3d) return;
+        const width = this.container3d.clientWidth;
+        const height = this.container3d.clientHeight;
+        this.camera.aspect = width / height;
+        this.camera.updateProjectionMatrix();
+        this.renderer.setSize(width, height);
+    }
+
+    visualizeStep(step) {
+        const explanationCard = document.getElementById('pca_3d_explanation_card');
+        const explanationTitle = document.getElementById('pca_3d_explanation_title');
+        const explanationText = document.getElementById('pca_3d_explanation_text');
+        explanationCard.style.display = 'block';
+
+        if (step === 1) {
+            explanationTitle.textContent = 'Step 1: Center the 3D Data';
+            explanationText.textContent = 'Just like before, we find the average center of our 3D cloud of points and shift everything so the center is at the origin (0,0,0).';
+            
+            const mean = new THREE.Vector3();
+            this.points3D.children.forEach(p => mean.add(p.position));
+            mean.divideScalar(this.points3D.children.length);
+
+            this.points3D.children.forEach(p => {
+                this.animateToPosition(p, p.position.clone().sub(mean), 800);
+            });
+
+            document.getElementById('vis_step_1').disabled = true;
+            document.getElementById('vis_step_2').disabled = false;
+        } else if (step === 2) {
+            explanationTitle.textContent = 'Step 2: Find the Best Flat Plane';
+            explanationText.textContent = 'With 3D data, PCA first finds the best flat plane (a 2D surface) that cuts through the data, capturing the most variation. This is our new simplified view.';
+
+            this.calculate3DPCA();
+            document.getElementById('vis_step_2').disabled = true;
+            document.getElementById('vis_step_3').disabled = false;
+        } else if (step === 3) {
+            explanationTitle.textContent = 'Step 3: Project from 3D to 2D';
+            explanationText.textContent = 'Now, we project each point from its position in 3D space directly onto the new 2D plane. We are reducing the dimension from 3 to 2!';
+
+            this.projectToPlane();
+            document.getElementById('vis_step_3').disabled = true;
+            document.getElementById('vis_step_4').disabled = false;
+        } else if (step === 4) {
+            explanationTitle.textContent = 'Step 4: Project from 2D to 1D';
+            explanationText.textContent = 'Finally, we can simplify even more by projecting the points from the 2D plane onto the most important line (PC1) within that plane. Now we have a 1D representation!';
+
+            this.projectToLine();
+            document.getElementById('vis_step_4').disabled = true;
+        }
+    }
+
+    calculate3DPCA() {
+        const planeGeometry = new THREE.PlaneGeometry(200, 200, 1, 1);
+        const planeMaterial = new THREE.MeshStandardMaterial({ 
+            color: '#7ED321', 
+            side: THREE.DoubleSide, 
+            transparent: true, 
+            opacity: 0.5, 
+            metalness: 0.2, 
+            roughness: 0.6 
+        });
+        this.pcaPlane = new THREE.Mesh(planeGeometry, planeMaterial);
+        
+        this.pcaPlane.rotation.x = Math.PI / 5;
+        this.pcaPlane.rotation.y = Math.PI / 6;
+        this.scene.add(this.pcaPlane);
+    }
+
+    projectToPlane() {
+        const projectedMaterial = new THREE.MeshStandardMaterial({ color: '#F5A623', metalness: 0.3, roughness: 0.4 });
+        const lineMaterial = new THREE.LineDashedMaterial({ color: '#E74C3C', dashSize: 2, gapSize: 2 });
+
+        this.projectedPoints = new THREE.Group();
+        this.scene.add(this.projectedPoints);
+
+        this.points3D.children.forEach(p => {
+            const point = p.position.clone();
+            const projectedPoint = new THREE.Vector3();
+            this.pcaPlane.worldToLocal(point);
+            projectedPoint.set(point.x, point.y, 0);
+            this.pcaPlane.localToWorld(projectedPoint);
+
+            const projectedSphere = new THREE.Mesh(p.geometry.clone(), projectedMaterial);
+            projectedSphere.position.copy(projectedPoint);
+            this.projectedPoints.add(projectedSphere);
+
+            const lineGeometry = new THREE.BufferGeometry().setFromPoints([p.position, projectedPoint]);
+            const projectionLine = new THREE.Line(lineGeometry, lineMaterial);
+            projectionLine.computeLineDistances();
+            this.scene.add(projectionLine);
+        });
+    }
+
+    projectToLine() {
+        const pc1Direction = new THREE.Vector3(1, 0, 0);
+        this.pcaPlane.localToWorld(pc1Direction);
+        pc1Direction.sub(this.pcaPlane.position).normalize();
+
+        const lineGeometry = new THREE.BufferGeometry().setFromPoints([
+            pc1Direction.clone().multiplyScalar(-100),
+            pc1Direction.clone().multiplyScalar(100)
+        ]);
+        const lineMaterial = new THREE.LineBasicMaterial({ color: '#50E3C2', linewidth: 3 });
+        const pc1Line = new THREE.Line(lineGeometry, lineMaterial);
+        this.scene.add(pc1Line);
+
+        const finalProjectedMaterial = new THREE.MeshStandardMaterial({ color: '#50E3C2', metalness: 0.3, roughness: 0.4 });
+
+        this.projectedPoints.children.forEach(p => {
+            const point = p.position.clone();
+            const projectedPoint = new THREE.Vector3().copy(pc1Direction).multiplyScalar(point.dot(pc1Direction));
+            
+            const finalSphere = new THREE.Mesh(p.geometry.clone(), finalProjectedMaterial);
+            finalSphere.position.copy(projectedPoint);
+            this.scene.add(finalSphere);
+
+            const lineGeometry = new THREE.BufferGeometry().setFromPoints([p.position, projectedPoint]);
+            const projectionLine = new THREE.Line(lineGeometry, new THREE.LineDashedMaterial({ color: '#E74C3C', dashSize: 1, gapSize: 2 }));
+            projectionLine.computeLineDistances();
+            this.scene.add(projectionLine);
+        });
+    }
+
+    animateToPosition(object, targetPosition, duration) {
+        const startPosition = object.position.clone();
+        let startTime = null;
+
+        const animate = (currentTime) => {
+            if (!startTime) startTime = currentTime;
+            const elapsedTime = currentTime - startTime;
+            const t = Math.min(elapsedTime / duration, 1);
+            object.position.lerpVectors(startPosition, targetPosition, t);
+            if (t < 1) {
+                requestAnimationFrame(animate);
             }
-            this.renderer.render(this.scene, this.camera);
         };
+        requestAnimationFrame(animate);
+    }
 
-        animate();
+    animate3D() {
+        if (!this.isAnimating3D) return;
+        requestAnimationFrame(() => this.animate3D());
+        this.controls.update();
+        this.renderer.render(this.scene, this.camera);
     }
 
     completeLab() {
@@ -592,7 +730,6 @@ class PCALab {
     }
 }
 
-// Initialize the PCA Lab when the page loads
 document.addEventListener('DOMContentLoaded', () => {
     new PCALab();
 });

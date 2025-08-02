@@ -230,10 +230,30 @@
         <!-- Section 6: 3D Visualization -->
         <section class="lab-section" id="section6">
             <div class="section-content">
-                <h1>🌌 Visualizing PCA in 3D!</h1>
-                <p>Here you can see your 2D data in a 3D space and how the PCA plane cuts through it.</p>
+                <h1>🌌 PCA in Action: A 3D Visualization</h1>
+                <p>Let's break down how PCA works step-by-step using a 3D visualization. Your 2D data is placed in a 3D world. Use your mouse to rotate the scene!</p>
                 
-                <div id="container_3d"></div>
+                <div class="pca-3d-container">
+                    <div id="container_3d"></div>
+                    <div id="pca-3d-controls">
+                        <h4>Visualization Steps</h4>
+                        <p id="pca-3d-instructions">Follow the steps to see how PCA simplifies complex data.</p>
+                        <button class="btn btn--secondary btn--sm" id="vis_step_1">1. Center 3D Data</button>
+                        <button class="btn btn--secondary btn--sm" id="vis_step_2" disabled>2. Find 2D Plane</button>
+                        <button class="btn btn--secondary btn--sm" id="vis_step_3" disabled>3. Project to 2D</button>
+                        <button class="btn btn--secondary btn--sm" id="vis_step_4" disabled>4. Project to 1D</button>
+                        <button class="btn btn--outline btn--sm" id="vis_reset">Reset</button>
+                    </div>
+                </div>
+
+                <div class="explanation" id="pca_3d_explanation_card" style="display: none;">
+                    <div class="card">
+                        <div class="card__body">
+                            <h3 id="pca_3d_explanation_title"></h3>
+                            <p id="pca_3d_explanation_text"></p>
+                        </div>
+                    </div>
+                </div>
 
                 <div class="completion-section">
                     <div class="card success-card" style="display: none;" id="completionCard">
@@ -261,6 +281,7 @@
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
